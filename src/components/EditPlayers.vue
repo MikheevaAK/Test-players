@@ -1,27 +1,28 @@
 <template>
-  <h1>Редактирование игроков</h1>
+  <div class="edit-page">
+    <h1>Редактирование игроков</h1>
 
-  <div
-    v-for="item in usersLife"
-    :key="item.name"
-    class="row"
-  >
-      <input id="name" v-model="item.name">
-      <a class="button" href="#" @click.prevent="minusLife(item)">-</a>
-      <span class="lifeCount">{{item.life}}</span>
-      <a class="button" href="#" @click.prevent="plusLife(item)">+</a>
+    <p v-if="isEmpty" class="edit-page__empty-message">Игроков нет. Добавьте игроков!</p>
+
+    <div v-else v-for="(item, index) in usersLife" :key="`${item.name}_${index}`" class="edit-page__row">
+      <input class="edit-page__input" id="name" v-model="item.name" @input="updatePlayer(item)">
+      <div class="edit-page__counter">
+        <button class="edit-page__counter-button" @click="minusLife(item)" :disabled="item.life <= 0">-</button>
+        <span class="edit-page__counter-life">{{ item.life }}</span>
+        <button class="edit-page__counter-button" @click="plusLife(item)">+</button>
+      </div>
+    </div>
+
+    <div v-if="!isEmpty">
+      <h2>Рейтинг</h2>
+      <table>
+        <tr v-for="(item, index) in rating" :key="index">
+          <td :class="{ 'first': index === 0 }">{{ index + 1 }}</td>
+          <td :class="{ 'first': index === 0 }" v-html="`У игрока <b>${item.name}</b> ${item.life} жизней`"></td>
+        </tr>
+      </table>
+    </div>
   </div>
-  
-  <h2>Рейтинг</h2>
-  <table>
-    <tr
-    v-for="(item, index) in rating"
-    :key="index"
-    >
-    <td v-text="`${index + 1}`"></td>
-    <td v-text="`У игрока <b>${item.name}</b> ${item.life} жизней`"></td>
-  </tr>
-  </table>
 </template>
 
 <script>
@@ -30,76 +31,93 @@ export default {
 
   props: {
     playersList: {
-      type: Array
+      type: Array,
+      required: true,
     },
   },
-  
-  data () {
-    return {
-    };
-  },
-  
-  created() {
-    for (let i = 0; i < this.playersList; i++) {
-      this.usersLife.push({
-        name: this.playersList.name,
-        life: this.playersList.life
-      });
-    }
-  },
-  
+
   computed: {
-    usersLife () {
-      return [...this.playersList]
+    isEmpty() {
+      return this.playersList.length === 0;
     },
-    rating () {
+    usersLife() {
+      return this.playersList;
+    },
+    rating() {
       let places = this.usersLife;
-  
       places.sort((a, b) => b.life - a.life);
-     
+
       return places;
     }
   },
-  
+
   methods: {
-    plusLife (item) {
+    plusLife(item) {
       item.life++;
     },
-
-    minusLife (item) {
+    minusLife(item) {
       item.life--;
-    }
+    },
+    updatePlayer(item) {
+      this.$emit('update-player', item);
+    },
   },
 }
 </script>
 
 <style lang="scss">
-    .row {
-        display: flex;
-        align-items: center;
-        margin-top: 20px;
+table {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 
-        input {
-            margin-right: 12px;
-            width: 100%;
-            height: 24px;
-        }
+  .first {
+    background-color: #98FB98;
+  }
 
-        .button {
-          width: 24px;
-          height: 24px;
-        }
+  td {
+    padding: 5px 10px;
+    border: 1px solid #2c3e50;
 
-        .life {
-          margin: 0 12px;
-        }
-    }
-
-    table {
+    &:last-child {
       width: 100%;
-
-      td {
-        border: 1px solid #2c3e50;
-      }
     }
+  }
+}
+
+.edit-page {
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  &__input {
+    width: 70%;
+    height: 24px;
+  }
+
+  &__counter {
+    display: flex;
+    align-items: center;
+
+    &-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    &-life {
+      margin: 0 12px;
+    }
+  }
+}
 </style>
